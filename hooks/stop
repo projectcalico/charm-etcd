@@ -1,0 +1,4 @@
+#!/bin/bash
+set -ex
+echo "Stopping etcd on $JUJU_UNIT_NAME"
+service etcd stop
