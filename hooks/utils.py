@@ -19,17 +19,27 @@ def write_config(
         "unit-get", "private-address"]).strip()
 
     template_data = {
-        'name': os.environ.get('JUJU_UNIT_NAME'),
+        'name': os.environ.get('JUJU_UNIT_NAME').replace('/', '-'),
         'verbose': svc_config['debug'] and 'true' or 'false',
         'client_address': '0.0.0.0:4001',
         'peers': '[]',
-        'peers_file': os.path.join(
-            os.path.dirname(config_path), 'peers'),
         'peer_address': "%s:7001" % private_address}
 
-    if peers:
-        template_data['peers'] = "[%s]" % (
-            ['"%s"' % s for s in peers])
+    if peers is None:
+        # Check if we have any peers previously.
+        sentinel_path = os.path.join(
+            os.path.dirname(config_path), 'sentinel')
+        if os.path.exists(sentinel_path):
+            with open(sentinel_path) as fh:
+                peers = json.loads(fh.read())
+
+    if peers is not None:
+        p = "["
+        for addr in peers:
+            p += '"%s",' % addr
+        p += "]"
+        template_data['peers'] = p
+        print("update_config: peers: %r" % template_data['peers'])
 
     with open(template_path) as fh:
         template = fh.read()
@@ -54,8 +64,6 @@ def write_config(
 
 
 def update_peers(config_path=CONFIG_PATH):
-    peers_path = os.path.join(
-        os.path.dirname(config_path), 'peers')
     sentinel_path = os.path.join(
         os.path.dirname(config_path), 'sentinel')
 
@@ -63,35 +71,20 @@ def update_peers(config_path=CONFIG_PATH):
         print("peers already intialized (sentinel found), exiting")
         return
 
-    if os.path.exists(peers_path):
-        with open(peers_path) as fh:
-            data = fh.read().strip()
-    else:
-        data = None
-    # If we already have peers, left raft manage the ongoing
-    # management. The sentinel path should normally take care of
-    # this for us.
-    if data:
-        print("peers already intialized (peer data found) %s, exiting" % data)
-        return
-
     peer_addrs = get_peer_addresses()
     if not peer_addrs:
         print("no peers found, exiting")
         return
 
-    print("updating peers")
-    with open(peers_path, 'w') as fh:
-        fh.write(",".join(peer_addrs))
-
     # We have to reset the data on the node if its ever been started.
-    subprocess.check_output(['service', 'etcd', 'stop'])
+    svc_stop('etcd')
     subprocess.check_output(['rm', '-Rf', '/opt/etcd/var/'])
     os.mkdir('/opt/etcd/var')
-    with open(sentinel_path, 'w') as fh:
-        fh.write('initialized\n')
 
-    subprocess.check_output(['service', 'etcd', 'start'])
+    write_config(peer_addrs)
+    with open(sentinel_path, 'w') as fh:
+        json.dump(peer_addrs, fh)
+
     print("peers reconfigured, restarted etcd")
 
 
@@ -125,3 +118,15 @@ def get_peer_addresses():
         peers.append("%s:7001" % data['private-address'])
 
     return peers
+
+
+def svc_is_running(name):
+    output = subprocess.check_output(['service', name, 'status'])
+    if 'running' in output:
+        return True
+    return False
+
+
+def svc_stop(name):
+    if svc_is_running(name):
+        subprocess.check_output(['service', name, 'stop'])
