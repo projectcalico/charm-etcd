@@ -12,8 +12,8 @@ Usage
  $ juju add-unit etcd
 
 
-**Warning** Nodes cannot be removed cleanly from an etcd cluster at this time. Hopefully
-this will exist for 0.4.0.
+**Warning** Nodes cannot be removed cleanly from an etcd cluster at this time 
+(0.3.0).
 
 
 Charm Notes
