@@ -1,0 +1,15 @@
+#!/usr/bin/python
+
+import json
+import subprocess
+import urllib2
+
+ip_addr = subprocess.check_output(['unit-get', 'private-address'])
+fh = urllib2.urlopen('http://%s:4001/v2/stats/self' % ip_addr)
+data = json.loads(fh.read())
+
+if data['leaderInfo']['leader'] == data['name']:
+    fh = urllib2.urlopen('http://%s:4001/v2/stats/leader' % ip_addr)
+    data.update(json.loads(fh.read()))
+
+print(json.dumps(data, indent=2))
