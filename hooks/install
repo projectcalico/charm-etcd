@@ -10,3 +10,5 @@ chmod +x-w /opt/etcd/bin/etcd
 
 cp $CHARM_DIR/files/etcd.upstart /etc/init/etcd.conf
 chmod -w /etc/init/etcd.conf
+
+open-port 4001

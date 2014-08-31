@@ -2,6 +2,8 @@ import bisect
 import json
 import os
 import subprocess
+import urllib
+import httplib
 
 
 CONFIG_PATH = '/opt/etcd/config'
@@ -86,6 +88,27 @@ def update_peers(config_path=CONFIG_PATH):
         json.dump(peer_addrs, fh)
 
     print("peers reconfigured, restarted etcd")
+
+
+def is_leader():
+    fh = urllib.urlopen("http://localhost:4001/v2/stats/self")
+    data = json.loads(fh.read())
+    return data['state'] == 'leader'
+
+
+def remove_peer(unit):
+    if not is_leader():
+        return
+    peer = unit.replace('/', '-')
+    conn = httplib.HTTPConnection('http://localhost:7001')
+    conn.request('DELETE', '/admin/machines/%s' % peer, '')
+    resp = conn.getresponse()
+    return resp.read()
+
+
+def cluster_peers():
+    fh = urllib.urlopen("http://localhost:7001/v2/admin/machines")
+    return json.loads(fh.read())
 
 
 def get_peer_addresses():

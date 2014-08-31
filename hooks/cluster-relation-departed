@@ -3,5 +3,5 @@ import os
 print("Removing peer %s on %s" % (
     os.environ['JUJU_REMOTE_UNIT'], os.environ['JUJU_UNIT_NAME']))
 
-from utils import update_peers
-update_peers()
+from utils import remove_peer
+remove_peer()

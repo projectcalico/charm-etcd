@@ -4,12 +4,11 @@ import json
 import subprocess
 import urllib2
 
-ip_addr = subprocess.check_output(['unit-get', 'private-address'])
-fh = urllib2.urlopen('http://%s:4001/v2/stats/self' % ip_addr)
+fh = urllib2.urlopen('http://localhost:4001/v2/stats/self')
 data = json.loads(fh.read())
 
-if data['leaderInfo']['leader'] == data['name']:
-    fh = urllib2.urlopen('http://%s:4001/v2/stats/leader' % ip_addr)
+if data['state'] == 'leader':
+    fh = urllib2.urlopen('http://localhost:4001/v2/stats/leader')
     data.update(json.loads(fh.read()))
 
 print(json.dumps(data, indent=2))

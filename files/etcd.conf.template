@@ -1,6 +1,6 @@
 name = "%(name)s"
-addr = "%(client_address)s"
-bind_addr = "0.0.0.0:4001"
+#addr = "%(client_address)s"
+#bind_addr = "0.0.0.0:4001"
 ca_file = ""
 cert_file = ""
 cors = []

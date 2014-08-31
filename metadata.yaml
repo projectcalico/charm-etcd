@@ -12,10 +12,10 @@ description: |
 
   etcd is written in Go and uses the Raft consensus algorithm to manage 
   a highly-available replicated log.
-  
+
 provides:
   client:
-    interface: http
+    interface: etcd
 peers:
   cluster:
-    interface: etcd
+    interface: etcd-raft
