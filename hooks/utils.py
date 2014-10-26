@@ -19,11 +19,13 @@ def write_config(
         "config-get", "--format=json"]))
     private_address = subprocess.check_output([
         "unit-get", "private-address"]).strip()
+    public_address = subprocess.check_output([
+        "unit-get", "public-address"]).strip()
 
     template_data = {
         'name': os.environ.get('JUJU_UNIT_NAME').replace('/', '-'),
         'verbose': svc_config['debug'] and 'true' or 'false',
-        'client_address': '0.0.0.0:4001',
+        'client_address': '%s:4001' % public_address,
         'peers': '[]',
         'peer_address': "%s:7001" % private_address}
 
