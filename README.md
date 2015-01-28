@@ -32,9 +32,13 @@ Health of the cluster can be checked by verified via juju run
 Charm Notes
 -----------
 
-Wrt to cluster management, We can't do the natural bit in juju which 
-is to update a node with its set of peers. 
+Wrt to cluster management, We can't do the natural bit in juju which
+is to update a node with its set of peers.
 
 Once a node has joined the cluster the state of the system is kept
 entirely within the raft log.
 
+Credits
+-------
+
+Original charm by @kapilt
