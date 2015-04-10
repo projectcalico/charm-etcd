@@ -19,7 +19,7 @@ tags:
 maintainers:
   - "Whit Morriss <whit.morriss@canonical.com>"
   - "Charles Butler <charles.butler@canonical.com>"
-  - "Matt Bruzek <matt.bruzek@canonical.com>"
+  - "Matt Bruzek <matthew.bruzek@canonical.com>"
 provides:
   client:
     interface: etcd
