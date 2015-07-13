@@ -1,14 +1,11 @@
 #!/bin/bash
 set -ex
 
-echo "Installing etcd on $JUJU_UNIT_NAME"
-mkdir -p /opt/etcd/bin
+# Commenting out until http://bit.ly/1cvUejA and http://pad.lv/1306991 are
+# corrected and easy_install is no longer required to make pip function.
+# apt-get install -y python-pip
+easy_install -U pip
+pip install charmhelpers path.py requests
+
+echo "Creating etcd data path on $JUJU_UNIT_NAME"
 mkdir -p /opt/etcd/var
-
-bzip2 -k -c -d $CHARM_DIR/files/etcd.amd64.bz2 > /opt/etcd/bin/etcd
-chmod +x-w /opt/etcd/bin/etcd
-
-cp $CHARM_DIR/files/etcd.upstart /etc/init/etcd.conf
-chmod -w /etc/init/etcd.conf
-
-open-port 4001

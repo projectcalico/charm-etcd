@@ -29,21 +29,27 @@ Its recommended to run an odd number of machines as it has greater redundancy th
 even number (ie. 4, you can lose 1 before quorum is lost, where as 5, you can 2).
 
 
+### Advanced Usage
+
+This charm also supports a `proxy` relation, when using the ETCD cluster as a
+discovery service for your own applications. Reference the
+[upstream documentation](https://github.com/coreos/etcd/blob/master/Documentation/proxy.md)
+to learn more about this feature of ETCD
+
+    juju add-relation <service>:<relation> etcd:proxy
+
+
+For each node in the cluster, you will receive a cluster-string that you can
+use to point your application into the cluster and join the gossip.
 
 ## Health
 
-Health of the cluster can be checked by verified via juju run
+Health of the cluster can be checked by verified via juju actions
 
-    juju run --service=etcd ./health
+    juju action do etcd/0 health
+    <return response uuid>
+    juju action fetch <uuid>
 
-
-## Known Limitations
-
-During Etcd cluster management, there is a natural flow that we are uanble
-to encapsulate in juju, which is to update a node with its set of peers.
-
-Presently, when a node has joined the cluster: the state of the system is kept
-entirely within the raft log.
 
 ## Credits
 
