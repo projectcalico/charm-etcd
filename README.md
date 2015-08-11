@@ -19,7 +19,7 @@ Etcd allows storing data in a distributed hierarchical database with observation
 
 We can deploy a single node easily with
 
-    juju deploy cs:~kubernetes/trusty/etcd
+    juju deploy cs:trusty/etcd
 
 Add and capacity with:
 
@@ -61,8 +61,7 @@ found. Please take care when deploying this charm on older versions of Juju.
 
 The etcd charm was originally written by Kapil Thangavelu ([@kapilt](https://github.com/kapilt)).
 
-
-#### Mantainers: 
+#### Maintainers:
 
 The kubernetes team maintains this charm:
   - Whit Morriss &lt;whit.morriss@canonical.com&gt;
