@@ -26,8 +26,8 @@ class TestDeployment(unittest.TestCase):
         self.deployment.add_unit('etcd')
         self.deployment.sentry.wait()
 
-        status1 = self.deployment.sentry['etcd/0'].run('service etcd status')
-        status2 = self.deployment.sentry['etcd/1'].run('service etcd status')
+        status1 = self.deployment.sentry.unit['etcd/0'].run('service etcd status')
+        status2 = self.deployment.sentry.unit['etcd/1'].run('service etcd status')
         self.assertTrue("running" in status1[0])
         self.assertTrue("running" in status2[0])
 
