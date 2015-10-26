@@ -37,7 +37,6 @@ def config_changed():
         status_set("maintenance", "Installing etcd.")
         install_etcd()
     if leader_status:
-        status_set('maintenance', 'Configuring leader')
         status_set('maintenance', "I am the leader, configuring single node")
         cluster_data = {'token': cluster_token()}
         cluster_data['cluster_state'] = 'new'
