@@ -16,6 +16,7 @@ hooks = hookenv.Hooks()
 hook_data = unitdata.HookData()
 db = unitdata.kv()
 
+status_set = hookenv.status_set
 private_address = hookenv.unit_get('private-address')
 public_address = hookenv.unit_get('private-address')
 unit_name = environ['JUJU_UNIT_NAME'].replace('/', '')
@@ -26,15 +27,17 @@ except NotImplementedError:
     hookenv.log('This charm requires Leader Election. Juju >= 1.23.2.'
                 ' Leader election binary not found, Panic and exit!',
                 'CRITICAL')
+    status_set('blocked', 'Requires Leader Election - juju >= 1.23.2')
     sys.exit(1)
 
 
 @hooks.hook('config-changed')
 def config_changed():
     if not db.get('installed') or hookenv.config().changed('source-sum'):
+        status_set("maintenance", "Installing etcd.")
         install_etcd()
     if leader_status:
-        print "I am the leader, configuring single node"
+        status_set('maintenance', "I am the leader, configuring single node")
         cluster_data = {'token': cluster_token()}
         cluster_data['cluster_state'] = 'new'
         cluster_data['cluster'] = cluster_string()
@@ -63,7 +66,7 @@ def cluster_relation_changed():
         cluster_data['cluster'] = hookenv.relation_get('cluster')
 
     if not token:
-        print "No token available on relationship - exiting"
+        status_set("blocked", "No token available on relationship - exiting")
         return
     cluster_data['token'] = token
     main(cluster_data)
@@ -104,6 +107,10 @@ def main(cluster_data={}):
                       cluster_data, owner='root', group='root')
 
     host.service('restart', 'etcd')
+    if leader_status:
+        status_set('active', 'Etcd leader running')
+    else:
+        status_set('active', 'Etcd follower running')
 
 
 def cluster_string():
