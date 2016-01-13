@@ -9,7 +9,7 @@ from path import path
 import string
 import random
 import shlex
-from subprocess import check_output, check_call
+from subprocess import check_call
 import sys
 
 hooks = hookenv.Hooks()

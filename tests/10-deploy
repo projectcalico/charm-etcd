@@ -19,7 +19,7 @@ class TestDeployment(unittest.TestCase):
             raise
 
     def test_single_service(self):
-        status = self.deployment.sentry['etcd/0'].run('service etcd status')
+        status = self.deployment.sentry['etcd'][0].run('service etcd status')
         self.assertTrue("running" in status[0])
 
     def test_two_node_scale(self):
