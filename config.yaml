@@ -1,11 +1,11 @@
 options:
   bin-source:
     type: string
-    default: https://github.com/coreos/etcd/releases/download/v2.0.11/etcd-v2.0.11-linux-amd64.tar.gz
+    default: https://github.com/coreos/etcd/releases/download/v2.2.3/etcd-v2.2.3-linux-amd64.tar.gz
     description: Location of etcd binary release to fetch
   source-sum:
     type: string
-    default: ff3801044edbe481a5986ca8b38575f2f454c37b
+    default: 208d5f05f1ef2715198904f46c7fde3f9b7bdec6
     description: SHA1 Sum of etcd binary release
   debug:
     type: boolean
