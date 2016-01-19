@@ -1,0 +1,10 @@
+#!/bin/bash
+set -ex
+
+leader=$(is-leader)
+if [[ $leader == True ]]; then
+  connection_string=$(chlp unitdata get etcd.connection_string)
+  # maintain some backwords compatibility with the existing interface until it
+  # is phased out w/ the layer rewrite.
+  relation-set connection_string=$connection_string port=4001 public_address=`unit-get public-address`
+fi
