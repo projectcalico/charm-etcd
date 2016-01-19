@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from charmhelpers.core import hookenv
+from charmhelpers.core.hookenv import unit_get
+from charmhelpers.core.hookenv import is_leader
 from charmhelpers.core import unitdata
 from charmhelpers.core import templating
 from charmhelpers.core import host
@@ -118,6 +120,7 @@ def cluster_string():
     cluster_rels = hook_data.rels['cluster'][1].keys()
     # introspect the cluster, and form the cluster string.
     # https://github.com/coreos/etcd/blob/master/Documentation/configuration.md#-initial-cluster
+    client_cluster = ['http://{}:7001'.format(unit_get('private-address'))]
     if hook_data.rels['cluster'][1]:
         reldata = hook_data.rels['cluster'][1][cluster_rels[0]]
         for unit in reldata:
@@ -125,9 +128,14 @@ def cluster_string():
             cluster = '{}{}=http://{}:7001,'.format(cluster,
                                                     unit.replace('/', ''),
                                                     private)
+            client_cluster.append('http://{}:7001'.format(private))
     else:
         cluster = "{}=http://{}:7001".format(unit_name, private_address)
 
+    # Only the leader will be communicating with clients. Because he is
+    # the grand poobah of Juju's ETCD story. The end.
+    if is_leader():
+        db.set('etcd.connection_string', ','.join(client_cluster))
     return cluster.rstrip(',')
 
 
