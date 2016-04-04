@@ -35,7 +35,7 @@ except NotImplementedError:
 
 @hooks.hook('config-changed')
 def config_changed():
-    if not db.get('installed') or hookenv.config().changed('source-sum'):
+    if not db.get('installed'):
         status_set("maintenance", "Installing etcd.")
         install_etcd()
     if leader_status:
@@ -94,8 +94,8 @@ def main(cluster_data={}):
 
         # do self registration
         if not db.get('registered'):
-            cmd = "/opt/etcd/etcdctl -C http://{}:4001 member add {}" \
-                  " http://{}:7001".format(leader_address,
+            cmd = "etcdctl -C http://{}:2379 member add {}" \
+                  " http://{}:2380".format(leader_address,
                                            cluster_data['unit_name'],
                                            private_address)
             print(cmd)
@@ -105,7 +105,7 @@ def main(cluster_data={}):
     # introspect the cluster, and form the cluster string.
     # https://github.com/coreos/etcd/blob/master/Documentation/configuration.md#-initial-cluster
 
-    templating.render('etcd.conf.jinja2', '/etc/init/etcd.conf',
+    templating.render('etcd.default.jinja2', '/etc/default/etcd',
                       cluster_data, owner='root', group='root')
 
     host.service('restart', 'etcd')
@@ -120,17 +120,17 @@ def cluster_string():
     cluster_rels = hook_data.rels['cluster'][1].keys()
     # introspect the cluster, and form the cluster string.
     # https://github.com/coreos/etcd/blob/master/Documentation/configuration.md#-initial-cluster
-    client_cluster = ['http://{}:7001'.format(unit_get('private-address'))]
+    client_cluster = ['http://{}:2380'.format(unit_get('private-address'))]
     if hook_data.rels['cluster'][1]:
         reldata = hook_data.rels['cluster'][1][cluster_rels[0]]
         for unit in reldata:
             private = reldata[unit]['private-address']
-            cluster = '{}{}=http://{}:7001,'.format(cluster,
+            cluster = '{}{}=http://{}:2380,'.format(cluster,
                                                     unit.replace('/', ''),
                                                     private)
-            client_cluster.append('http://{}:7001'.format(private))
+            client_cluster.append('http://{}:2380'.format(private))
     else:
-        cluster = "{}=http://{}:7001".format(unit_name, private_address)
+        cluster = "{}=http://{}:2380".format(unit_name, private_address)
 
     # Only the leader will be communicating with clients. Because he is
     # the grand poobah of Juju's ETCD story. The end.
@@ -152,26 +152,9 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
 
 def install_etcd():
-    source = hookenv.config('bin-source')
-    sha = hookenv.config('source-sum')
+    apt_install('etcd')
 
-    unpack = fetch.install_remote(source, 'fetched', sha)
-
-    # Copy the payload into place on the system
-    etcd_dir = path('/opt/etcd')
-    unpack_dir = path(unpack)
-    for d in unpack_dir.dirs():
-        d = path(d)
-        for f in d.files():
-            f.copy(etcd_dir)
-
-    for executable in "etcd", "etcdctl":
-        origin = etcd_dir / executable
-        target = path('/usr/local/bin/%s' % executable)
-        target.exists() and target.remove()
-        origin.symlink(target)
-
-    hookenv.open_port(4001)
+    hookenv.open_port(2379)
     db.set('installed', True)
 
 if __name__ == '__main__':

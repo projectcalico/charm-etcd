@@ -6,7 +6,8 @@ import urllib
 import httplib
 
 
-CONFIG_PATH = '/opt/etcd/config'
+CONFIG_PATH = '/etc/default/etcd'
+ETCD_PEERS = '/etc/default/etcd-peers'
 TEMPLATE_PATH = os.path.join(
     os.environ.get('CHARM_DIR'), 'files', 'etcd.conf.template')
 
@@ -25,14 +26,13 @@ def write_config(
     template_data = {
         'name': os.environ.get('JUJU_UNIT_NAME').replace('/', '-'),
         'verbose': svc_config['debug'] and 'true' or 'false',
-        'client_address': '%s:4001' % public_address,
+        'client_address': '%s:2379' % public_address,
         'peers': '[]',
-        'peer_address': "%s:7001" % private_address}
+        'peer_address': "%s:2380" % private_address}
 
     if peers is None:
         # Check if we have any peers previously.
-        sentinel_path = os.path.join(
-            os.path.dirname(config_path), 'sentinel')
+        sentinel_path = ETCD_PEERS
         if os.path.exists(sentinel_path):
             with open(sentinel_path) as fh:
                 peers = json.loads(fh.read())
@@ -67,9 +67,8 @@ def write_config(
     return True
 
 
-def update_peers(config_path=CONFIG_PATH):
-    sentinel_path = os.path.join(
-        os.path.dirname(config_path), 'sentinel')
+def update_peers():
+    sentinel_path = ETCD_PEERS
 
     if os.path.exists(sentinel_path):
         print("peers already intialized (sentinel found), exiting")
@@ -82,8 +81,7 @@ def update_peers(config_path=CONFIG_PATH):
 
     # We have to reset the data on the node if its ever been started.
     svc_stop('etcd')
-    subprocess.check_output(['rm', '-Rf', '/opt/etcd/var/'])
-    os.mkdir('/opt/etcd/var')
+    subprocess.check_output(['rm', '-Rf', '/var/lib/etcd/default'])
 
     write_config(peer_addrs)
     with open(sentinel_path, 'w') as fh:
@@ -93,7 +91,7 @@ def update_peers(config_path=CONFIG_PATH):
 
 
 def is_leader():
-    fh = urllib.urlopen("http://localhost:4001/v2/stats/self")
+    fh = urllib.urlopen("http://localhost:2379/v2/stats/self")
     data = json.loads(fh.read())
     return data['state'] == 'leader'
 
@@ -102,14 +100,14 @@ def remove_peer(unit):
     if not is_leader():
         return
     peer = unit.replace('/', '-')
-    conn = httplib.HTTPConnection('http://localhost:7001')
+    conn = httplib.HTTPConnection('http://localhost:2380')
     conn.request('DELETE', '/admin/machines/%s' % peer, '')
     resp = conn.getresponse()
     return resp.read()
 
 
 def cluster_peers():
-    fh = urllib.urlopen("http://localhost:7001/v2/admin/machines")
+    fh = urllib.urlopen("http://localhost:2380/v2/admin/machines")
     return json.loads(fh.read())
 
 
@@ -140,7 +138,7 @@ def get_peer_addresses():
         if not data:
             continue
         data = json.loads(data)
-        peers.append("%s:7001" % data['private-address'])
+        peers.append("%s:2380" % data['private-address'])
 
     return peers
 
