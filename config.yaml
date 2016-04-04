@@ -11,9 +11,9 @@ options:
     type: boolean
     default: true
     description: |
-        *DEPRECIATED* Enable debug logging
+        *DEPRECATED* Enable debug logging
   snapshot:
     type: boolean
     default: true
     description: |
-        *DEPRECIATED* Enable log snapshots
+        *DEPRECATED* Enable log snapshots
