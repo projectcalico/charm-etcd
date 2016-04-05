@@ -12,6 +12,7 @@ import string
 import random
 import shlex
 from subprocess import check_call
+from subprocess import check_output
 import sys
 
 hooks = hookenv.Hooks()
@@ -108,7 +109,9 @@ def main(cluster_data={}):
     templating.render('etcd.default.jinja2', '/etc/default/etcd',
                       cluster_data, owner='root', group='root')
 
-    host.service('restart', 'etcd')
+    host.service('stop', 'etcd')
+    check_output(['rm', '-Rf', '/var/lib/etcd/default'])
+    host.service('start', 'etcd')
     if leader_status:
         status_set('active', 'Etcd leader running')
     else:
@@ -152,8 +155,6 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
 
 def install_etcd():
-    apt_install('etcd')
-
     hookenv.open_port(2379)
     db.set('installed', True)
 
