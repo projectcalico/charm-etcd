@@ -29,3 +29,6 @@ provides:
 peers:
   cluster:
     interface: etcd-raft
+series:
+  - trusty
+  - xenial
